@@ -14,6 +14,8 @@ import pymssql
 
 def main():
   parser = optparse.OptionParser()
+  parser.description="""Python script to dump a MSSQL Server Database to folder of CSV files.
+	Requires the freetds library and the pymssql module"""
   parser.add_option("-H", "--host", dest="hostname", help="connect to HOSTNAME", metavar="HOSTNAME")
   parser.add_option("-d", "--database", dest="database", help="connect to DATABASE", metavar="DATABASE")
   parser.add_option("-u", "--user", dest="username", help="username to connect with", metavar="USERNAME")
