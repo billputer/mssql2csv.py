@@ -6,60 +6,30 @@ mssql2csv.py
 Created by Bill Wiens on 2010-05-04.
 """
 
-import sys, os, getopt
+import sys, os, getopt, getpass
+import optparse
 import logging
 import csv
 import pymssql
 
-def main(argv):
-  try:
-    opts, args = getopt.getopt(argv, "h:d:t:r:u:p:U", ["help","host=","database=","tables=","result=","user=","password="])
-  except getopt.GetoptError:
-    usage()
-    sys.exit(2)
+def main():
+  parser = optparse.OptionParser()
+  parser.add_option("-H", "--host", dest="hostname", help="connect to HOSTNAME", metavar="HOSTNAME")
+  parser.add_option("-d", "--database", dest="database", help="connect to DATABASE", metavar="DATABASE")
+  parser.add_option("-u", "--user", dest="username", help="username to connect with", metavar="USERNAME")
+  parser.add_option("-p", "--password", dest="password", help="password to connect with", metavar="PASSWORD")
+  parser.add_option("-t", "--tables", dest="tables", help="Comma-separated list of tables to dump", metavar="TABLES")
 
-  # Start values for variables
-  database_host = "localhost"
-  database_name = "master"
-  database_user = "sa"
-  database_pass = ""
-  database_tables = ""
-  dataLimit = 0
+  (options, args) = parser.parse_args()
+  options = vars(options)
+    
+  if not options['password']:
+    options['password'] = getpass.getpass("Enter password:")
   
-  for o, a in opts:
-    if o == "--help":
-      usage()
-      sys.exit()
-    if o in ("-h", "--host"):
-      database_host = a
-    if o in ("-d", "--database"):
-      database_name = a
-    if o in ("-u", "--user"):
-      database_user = a
-    if o in ("-p", "--password"):
-      if len(a) >0:
-        database_pass = a
-      else:
-        database_pass = getpass.getpass(database_user + "'s Password:")
-
-    if o in ("-t","--tables"):
-      database_tables = string.split(a, ",")
-  dump_db(database_host, database_name, database_user, database_pass, database_tables)
-
-def usage ():
-  logging.getLogger().error(u"""
-  Python script to dump a MSSQL Server Database to a SQL Script suitable for MySQL
-  Requires the freetds library and the pymssql module
-  
-  mssql2mysql [options] [tables = tablename]
-  
-  OPTIONS:
-  --host=<hostname> .- Specifies the hostname to connect to
-  --db=<database_name>   .- Database name to use
-  --user=<username>  .- Username with login privilegies
-  --password=<password>.- Password for username
-  --tables=<tables1>,<table2>.- List of tables that you want to dump
-  """)
+  if options['tables']:
+    options['tables'] = str.split(options['tables'], ",")
+    
+  dump_db(options['hostname'], options['database'], options['username'], options['password'], options['tables'])
 
 
 def dump_db(database_host, database_name, database_user, database_pass, database_tables):
@@ -116,6 +86,6 @@ if __name__ == '__main__':
   logging.getLogger().setLevel(logging.DEBUG)
   
   try:
-    main(sys.argv[1:])
+    main()
   except KeyboardInterrupt:
     logging.getLogger().error("Cancelled by user")
